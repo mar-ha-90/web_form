@@ -131,8 +131,22 @@ function timingSafeEqual(a, b) {
 
 /* -------------------------------------------------------------- validation */
 
-const CONTROL_CHARS = /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g;
+/* Control characters a value may keep, by field type. Must match
+ * Validator::stripControlChars() in the PHP engine exactly — the two are one
+ * wire protocol and a value the PHP would reject must not sail through here.
+ *
+ * A textarea keeps tab and newline; every other field type is single-line, so
+ * it keeps tab only. CR is stripped from both (see stripControls below): it is
+ * the half of CRLF that turns a value into an extra mail header. */
+const CONTROL_CHARS = /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g;          // textarea
+const CONTROL_CHARS_SINGLE_LINE = /[\x00-\x08\x0A-\x0C\x0E-\x1F\x7F]/g;
 const TRUTHY = new Set(['1', 'on', 'true', 'yes', 'ano', 'tak']);
+
+function stripControls(value, type) {
+  return String(value)
+    .replace(/\r/g, '')
+    .replace(type === 'textarea' ? CONTROL_CHARS : CONTROL_CHARS_SINGLE_LINE, '');
+}
 
 export function validate(fields, input) {
   const clean = {};
@@ -144,7 +158,7 @@ export function validate(fields, input) {
     let raw = input[name];
     if (Array.isArray(raw)) raw = raw.map(String).join(', ');
 
-    const value = raw == null ? '' : String(raw).trim().replace(CONTROL_CHARS, '');
+    const value = raw == null ? '' : stripControls(String(raw).trim(), rules.type);
 
     if (rules.type === 'consent' || rules.type === 'checkbox') {
       const checked = TRUTHY.has(value.toLowerCase());
