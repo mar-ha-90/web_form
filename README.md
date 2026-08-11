@@ -51,7 +51,8 @@ site/                          ← everything here goes to the web server
 
 dev/                           ← never deployed
   server.mjs                     local server: node dev/server.mjs
-  test.mjs                       22 protocol tests
+  test.mjs                       22 protocol tests (JS adapter)
+  test.php                       63 tests (PHP engine) — run this too
   demo.html                      working reference form
   data/, outbox/                 local submissions and .eml files
 ```
@@ -150,6 +151,34 @@ Open http://localhost:8787, submit, read the `.eml` that appears in
 ```bash
 node dev/test.mjs
 ```
+
+**6. Run the PHP tests too. This is not optional.**
+
+```bash
+php dev/test.php
+```
+
+`dev/test.mjs` exercises the JS adapter. It cannot tell you anything about
+`site/api`, and for a long time nothing did — the PHP was assumed correct
+because the JS passed and the two implement the same rules. It was not.
+`lib/Exception.php` declared `private $code`, narrowing the `protected $code`
+inherited from PHP's own `Exception`. That error is raised when the class is
+*declared*, so the file could not be required, so `form.php` died inside its
+`require` block before it set the JSON content type. Every request returned an
+**empty HTTP 500 with no body** — nothing in the browser, nothing in the JSON,
+no clue. It shipped to a live client site in that state.
+
+`dev/test.php` loads every library in its own process first, so "does this file
+even declare cleanly" is asserted rather than assumed, then runs a full
+submission through the engine. It needs no `config.php` and no mailbox: it
+writes a throwaway config and data directory under the system temp folder,
+disables mail, and cleans up after itself.
+
+If you have no PHP: `winget install PHP.PHP.8.5` on Windows. At minimum run
+`php -l` over every file in `site/api` before any deploy — that alone would have
+caught the outage above.
+
+Change one engine, mirror it in the other, and run **both** suites.
 
 ---
 

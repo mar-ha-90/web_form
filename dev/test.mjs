@@ -15,7 +15,22 @@ const ENDPOINT = `${BASE}/api/form.php`;
 let passed = 0;
 let failed = 0;
 
+/* A token is a deterministic HMAC over form id + the second it was issued in,
+ * so two asked for inside the same second are byte-identical — and the second
+ * one is then correctly refused as a replay of the first. These tests run in
+ * far less than a second, so the clock has to be allowed to tick between them.
+ *
+ * This is not a flaw in the engine: single-use tokens are the point. It bit
+ * because the tests that wait out the minSeconds trap do so AFTER asking for
+ * the token, which spaces out the submissions but not the issuing. */
+let lastIssuedSecond = 0;
+
 async function token(form = 'rezervacia') {
+  while (Math.floor(Date.now() / 1000) === lastIssuedSecond) {
+    await new Promise((r) => setTimeout(r, 50));
+  }
+  lastIssuedSecond = Math.floor(Date.now() / 1000);
+
   const res = await fetch(`${ENDPOINT}?nonce=1&form=${form}`);
   const body = await res.json();
   return body.nonce;

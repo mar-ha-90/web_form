@@ -27,11 +27,11 @@ final class FE_Validator
             if (is_array($raw)) {
                 $raw = implode(', ', array_map('strval', $raw));
             }
-            $value = $raw === null ? '' : trim((string) $raw);
-            $value = self::stripControlChars($value);
-
             $type = $rules['type'];
             $required = !empty($rules['required']);
+
+            $value = $raw === null ? '' : trim((string) $raw);
+            $value = self::stripControlChars($value, $type);
 
             if ($type === 'consent' || $type === 'checkbox') {
                 $checked = self::isTruthy($value);
@@ -215,13 +215,31 @@ final class FE_Validator
     }
 
     /**
-     * Strip C0/C1 controls except tab and newline. This is what stops header
-     * injection dead: a CR or LF smuggled into a value can never reach a mail
-     * header because it does not survive validation.
+     * Strip C0/C1 control characters, keeping only what the field type can
+     * legitimately contain.
+     *
+     * This is the layer that stops header injection: a CR or LF smuggled into
+     * a value is what turns one mail header into two. It used to claim that and
+     * not do it — the old character class skipped \x0A and \x0D, so both
+     * survived. Nothing was exploitable, because Mailer::headerSafe() scrubs
+     * the subject and every other user value goes into a base64 body, but a
+     * defence that is one refactor away from being load-bearing should actually
+     * work. dev/test.php asserts it now.
+     *
+     * CR goes unconditionally: a textarea needs \n and never \r, and CR is the
+     * half of the pair that starts a new header. LF survives only in a textarea,
+     * which is the one field type that is genuinely multi-line; in a single-line
+     * field it is either a paste artefact or an attempt.
      */
-    private static function stripControlChars($value)
+    private static function stripControlChars($value, $type = 'text')
     {
-        $value = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $value);
+        $value = str_replace("\r", '', (string) $value);
+
+        $class = $type === 'textarea'
+            ? '/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u'   // keeps tab and newline
+            : '/[\x00-\x08\x0A-\x0C\x0E-\x1F\x7F]/u'; // keeps tab only
+
+        $value = preg_replace($class, '', $value);
         return $value === null ? '' : $value;
     }
 }
