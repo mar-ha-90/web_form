@@ -1,0 +1,127 @@
+{
+  "_comment": "Single source of truth for every form on this site. Both the PHP engine and the JS adapter read this file, so a field only ever gets defined once. Copy it into each project and edit; the engine refuses any form id that is not listed here.",
+
+  "forms": {
+    "rezervacia": {
+      "label": "Rezervácia",
+      "to": ["oravecrafting@gmail.com"],
+      "cc": [],
+      "subject": "Nová rezervácia — {meno}, {datum}",
+      "replyTo": "email",
+      "minSeconds": 3,
+      "maxPerHour": 5,
+      "maxPerDay": 20,
+      "store": true,
+
+      "fields": {
+        "meno": {
+          "type": "text",
+          "label": "Meno a priezvisko",
+          "required": true,
+          "min": 2,
+          "max": 100
+        },
+        "email": {
+          "type": "email",
+          "label": "E-mail",
+          "required": true,
+          "max": 200
+        },
+        "telefon": {
+          "type": "tel",
+          "label": "Telefón",
+          "required": true,
+          "max": 40
+        },
+        "datum": {
+          "type": "date",
+          "label": "Dátum splavu",
+          "required": true,
+          "min": "today",
+          "max": "+2 years"
+        },
+        "cas": {
+          "type": "select",
+          "label": "Čas odchodu",
+          "required": false,
+          "options": [
+            "09:00", "09:30", "10:00", "10:30", "11:00",
+            "13:00", "13:30", "14:00", "14:30", "15:00",
+            "15:30", "16:00", "16:30"
+          ]
+        },
+        "pocet_osob": {
+          "type": "int",
+          "label": "Počet osôb",
+          "required": true,
+          "min": 1,
+          "max": 60
+        },
+        "sluzba": {
+          "type": "select",
+          "label": "Záujem o",
+          "required": false,
+          "options": [
+            "Rafting s inštruktorom",
+            "Požičovňa člnov (bez inštruktora)",
+            "Mini camping",
+            "Skupina / škola / firma",
+            "Niečo iné"
+          ]
+        },
+        "trasa": {
+          "type": "select",
+          "label": "Trasa",
+          "required": false,
+          "options": [
+            "Červený Kláštor – Lesnica (9 km)",
+            "Spišská Stará Ves – Lesnica (17 km)",
+            "Spišská Stará Ves – Krościenko (26 km)",
+            "Neviem, poraďte mi"
+          ]
+        },
+        "poznamka": {
+          "type": "textarea",
+          "label": "Poznámka",
+          "required": false,
+          "max": 2000,
+          "maxLinks": 1
+        },
+        "suhlas": {
+          "type": "consent",
+          "label": "Súhlas so spracovaním osobných údajov",
+          "required": true
+        },
+        "lang": {
+          "type": "hidden",
+          "label": "Jazyk",
+          "max": 5
+        }
+      }
+    },
+
+    "kontakt": {
+      "label": "Kontaktný formulár",
+      "to": ["oravecrafting@gmail.com"],
+      "subject": "Správa z webu — {meno}",
+      "replyTo": "email",
+      "minSeconds": 3,
+      "maxPerHour": 5,
+
+      "fields": {
+        "meno": { "type": "text", "label": "Meno", "required": true, "max": 100 },
+        "email": { "type": "email", "label": "E-mail", "required": true },
+        "sprava": {
+          "type": "textarea",
+          "label": "Správa",
+          "required": true,
+          "min": 10,
+          "max": 4000,
+          "maxLinks": 1
+        },
+        "suhlas": { "type": "consent", "label": "Súhlas", "required": true },
+        "lang": { "type": "hidden", "label": "Jazyk", "max": 5 }
+      }
+    }
+  }
+}

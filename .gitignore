@@ -1,0 +1,19 @@
+# Secrets — never in git, on any project that embeds this.
+site/api/config.php
+**/api/config.php
+
+# Submitted data. Ignore the CONTENTS, not the folder: the .htaccess and
+# web.config inside are what make it return 403 over HTTP, and git cannot
+# re-include a file whose parent directory has been excluded.
+site/api/data/*
+!site/api/data/.htaccess
+!site/api/data/web.config
+**/api/data/*
+!**/api/data/.htaccess
+!**/api/data/web.config
+
+# Local test output
+dev/data/
+dev/outbox/
+
+node_modules/

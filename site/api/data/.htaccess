@@ -1,0 +1,16 @@
+# Belt and braces on top of the parent folder's rules: every stored submission
+# lives under here, and none of it may ever be fetched over HTTP. Use
+# export.php (token-protected) or download the files over FTP.
+
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+
+<IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+</IfModule>
+
+# Deliberately no "php_flag engine off" here: it is only understood when PHP
+# runs as an Apache module, and on a FastCGI/FPM host it makes Apache return
+# 500 for this whole folder. The deny rules above are the protection.

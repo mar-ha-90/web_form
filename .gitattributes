@@ -1,0 +1,9 @@
+# These files are FTP'd to Linux shared hosting. Checking them out with CRLF on
+# Windows and uploading them as-is is asking for trouble in .htaccess in
+# particular, so normalise to LF everywhere and keep the working copy the same.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.woff2 binary
+*.ico binary

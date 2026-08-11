@@ -1,0 +1,52 @@
+# Nothing in this folder should be readable as a file. form.php and export.php
+# are executed by PHP, which is unaffected by these rules; everything else —
+# the SMTP password in config.php, the recipient addresses in forms.json, the
+# library sources — is blocked. This matters most on the day PHP is misconfigured
+# during a host migration and .php files start being served as plain text.
+
+<IfModule mod_authz_core.c>
+    # Apache 2.4
+    <FilesMatch "\.(json|log|jsonl|md|ini|bak|dist|config|example\.php)$">
+        Require all denied
+    </FilesMatch>
+    <Files "config.php">
+        Require all denied
+    </Files>
+</IfModule>
+
+<IfModule !mod_authz_core.c>
+    # Apache 2.2 and older
+    <FilesMatch "\.(json|log|jsonl|md|ini|bak|dist|config|example\.php)$">
+        Order allow,deny
+        Deny from all
+    </FilesMatch>
+    <Files "config.php">
+        Order allow,deny
+        Deny from all
+    </Files>
+</IfModule>
+
+# The lib folder holds no entry points at all.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^lib/ - [F,L]
+    RewriteRule ^data/ - [F,L]
+</IfModule>
+
+# Submissions are not content.
+<IfModule mod_headers.c>
+    Header always set X-Robots-Tag "noindex, nofollow"
+
+    # Tighter than the site-wide policy one directory up, and it overrides it.
+    # These endpoints return JSON, CSV or plain text and nothing else, so a
+    # response from here has no business loading anything at all. If a bug ever
+    # let markup through, 'none' is what stops it doing damage.
+    Header always set Content-Security-Policy "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; sandbox"
+
+    # A booking URL can carry a form id; never leak it to another site.
+    Header always set Referrer-Policy "no-referrer"
+
+    Header always set X-Frame-Options "DENY"
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set Cross-Origin-Resource-Policy "same-origin"
+</IfModule>

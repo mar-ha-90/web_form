@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>form-engine — demo</title>
+<style>
+  :root { color-scheme: light dark; --line:#d8dbe0; --muted:#6b7280; --accent:#0d9488; --bg:#f6f7f9; --card:#fff; --ink:#111827; }
+  @media (prefers-color-scheme: dark) { :root { --line:#33383f; --muted:#9aa1ab; --bg:#14171a; --card:#1c2024; --ink:#e8eaed; } }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.55 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif; }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 40px 20px 80px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .sub { color: var(--muted); font-size: 14px; margin: 0 0 28px; }
+  form { background: var(--card); border:1px solid var(--line); border-radius:12px; padding:24px; }
+  .grid { display:grid; gap:16px; grid-template-columns:1fr 1fr; }
+  .full { grid-column: 1 / -1; }
+  label > span { display:block; font-size:13px; font-weight:600; margin-bottom:6px; }
+  input, select, textarea { width:100%; padding:10px 12px; font:inherit; font-size:15px; color:var(--ink);
+    background:var(--card); border:1px solid var(--line); border-radius:8px; }
+  input:focus, select:focus, textarea:focus { outline:2px solid color-mix(in srgb, var(--accent) 40%, transparent); border-color:var(--accent); }
+  [aria-invalid=true] { border-color:#dc2626; }
+  .consent { display:flex; gap:10px; align-items:flex-start; font-size:14px; margin-top:18px; }
+  .consent input { width:18px; height:18px; flex:none; margin-top:2px; }
+  button { margin-top:20px; width:100%; padding:13px; font:inherit; font-weight:600; color:#fff;
+    background:var(--accent); border:0; border-radius:8px; cursor:pointer; }
+  button[disabled] { opacity:.6; cursor:default; }
+  [data-form-status] { margin-top:16px; padding:12px 14px; border-radius:8px; font-size:14px; }
+  [data-form-status][hidden] { display:none; }
+  [data-form-status][data-state=info]  { background:#eef2ff; color:#3730a3; }
+  [data-form-status][data-state=ok]    { background:#ecfdf5; color:#065f46; }
+  [data-form-status][data-state=error] { background:#fef2f2; color:#991b1b; }
+  .hint { margin-top:26px; font-size:13px; color:var(--muted); }
+  code { background:color-mix(in srgb, var(--muted) 18%, transparent); padding:1px 5px; border-radius:4px; }
+</style>
+</head>
+<body data-form-endpoint="/api/form.php">
+
+<div class="wrap">
+  <h1>form-engine — demo</h1>
+  <p class="sub">Posts to the local dev server. Successful submissions land in <code>dev/outbox/</code> as .eml files.</p>
+
+  <!-- data-form must name a form id from api/forms.json. Field names must match
+       that schema too; the server drops anything it does not recognise. -->
+  <form data-form="rezervacia" novalidate
+        data-msg-sending="Odosielam…"
+        data-msg-success="Ďakujeme! Rezerváciu máme a ozveme sa vám čo najskôr."
+        data-msg-error="Formulár sa nepodarilo odoslať. Zavolajte nám prosím."
+        data-msg-required="Skontrolujte prosím zvýraznené polia."
+        data-msg-email="Zadajte platnú e-mailovú adresu."
+        data-msg-tel="Zadajte platné telefónne číslo."
+        data-msg-min="Táto hodnota je príliš malá."
+        data-msg-max="Táto hodnota je príliš veľká."
+        data-msg-rate="Príliš veľa pokusov. Skúste to neskôr.">
+
+    <div class="grid">
+      <label><span>Meno a priezvisko</span>
+        <input type="text" name="meno" required autocomplete="name" placeholder="Ján Novák"></label>
+
+      <label><span>E-mail</span>
+        <input type="email" name="email" required autocomplete="email" placeholder="jan@example.sk"></label>
+
+      <label><span>Telefón</span>
+        <input type="tel" name="telefon" required autocomplete="tel" placeholder="+421 900 000 000"></label>
+
+      <label><span>Dátum splavu</span>
+        <input type="date" name="datum" required></label>
+
+      <label><span>Čas odchodu</span>
+        <select name="cas">
+          <option value="">Vyberte čas</option>
+          <option>09:00</option><option>09:30</option><option>10:00</option>
+          <option>13:00</option><option>14:00</option><option>15:00</option>
+        </select></label>
+
+      <label><span>Počet osôb</span>
+        <input type="number" name="pocet_osob" min="1" max="60" step="1" value="2" required></label>
+
+      <label class="full"><span>Čo máte záujem</span>
+        <select name="sluzba">
+          <option>Rafting s inštruktorom</option>
+          <option>Požičovňa člnov (bez inštruktora)</option>
+          <option>Mini camping</option>
+          <option>Skupina / škola / firma</option>
+          <option>Niečo iné</option>
+        </select></label>
+
+      <label class="full"><span>Trasa</span>
+        <select name="trasa">
+          <option>Červený Kláštor – Lesnica (9 km)</option>
+          <option>Spišská Stará Ves – Lesnica (17 km)</option>
+          <option>Spišská Stará Ves – Krościenko (26 km)</option>
+          <option>Neviem, poraďte mi</option>
+        </select></label>
+
+      <label class="full"><span>Poznámka</span>
+        <textarea name="poznamka" rows="4" placeholder="Deti, skupina, špeciálne požiadavky…"></textarea></label>
+    </div>
+
+    <label class="consent">
+      <input type="checkbox" name="suhlas" required>
+      <span>Súhlasím so spracovaním osobných údajov.</span>
+    </label>
+
+    <input type="hidden" name="lang" value="sk">
+
+    <button type="submit" data-form-submit>Odoslať rezerváciu</button>
+
+    <p data-form-status role="status" aria-live="polite" hidden></p>
+  </form>
+
+  <p class="hint">
+    Try: submitting in under 3 seconds (quarantined as too fast), pasting three URLs
+    into the note (link score), or submitting six times in a row (rate limited).
+  </p>
+</div>
+
+<script src="/form.js" defer></script>
+</body>
+</html>
